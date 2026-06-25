@@ -1,5 +1,6 @@
 const express = require("express");
 const AuthRoute = require("./routes/AuthRoute");
+const RoleRoutes = require("./routes/RoleRoutes");
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.get("/api", (req, res) => {
   res.send("Hello World!");
 });
 app.use("/api/auth", AuthRoute);
+app.use("/api/roles", RoleRoutes);
 
 // 404 handler
 app.use((req, res) => {
