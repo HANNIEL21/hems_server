@@ -1,0 +1,29 @@
+{
+  "name": "hems",
+  "version": "1.0.0",
+  "description": "DESIGN & IMPLEMENTATION OF AHEALTHCARE EMERGENCYMANAGEMENT SYSTEM",
+  "homepage": "https://github.com/HANNIEL21/hems_server#readme",
+  "bugs": {
+    "url": "https://github.com/HANNIEL21/hems_server/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HANNIEL21/hems_server.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "test",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.22.5",
+    "nodemon": "^3.1.14"
+  }
+}
