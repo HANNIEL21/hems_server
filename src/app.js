@@ -1,5 +1,5 @@
 const express = require("express");
-const AuthRoute = require("./routes/AuthRoute");
+const AuthRoutes = require("./routes/AuthRoutes");
 const UserRoutes = require("./routes/userRoutes");
 const RoleRoutes = require("./routes/RoleRoutes");
 
@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/api", (req, res) => {
   res.send("Hello World!");
 });
-app.use("/api/auth", AuthRoute);
+app.use("/api/auth", AuthRoutes);
 app.use("/api/users", UserRoutes);
 app.use("/api/roles", RoleRoutes);
 
