@@ -76,7 +76,7 @@ This project is configured to run on Vercel as a serverless function via `server
    - **Framework Preset:** Other
    - **Build Command:** `npm run build` (also set in `vercel.json`)
    - **Install Command:** `npm install`
-   - **Output Directory:** (leave empty)
+   - **Output Directory:** `public` (also set in `vercel.json`; the API itself is served by the `api/` function)
 3. Add the following environment variables in Vercel (do not commit `.env`):
    - `MONGODB_URI`
    - `JWT_SECRET`
