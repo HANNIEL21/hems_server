@@ -68,7 +68,7 @@ $ npm run start:prod
 
 ### Deploying to Vercel
 
-This project is configured to run on Vercel as a serverless function via `serverless-http` (see `src/serverless.ts`, `api/serverless.js`, and `vercel.json`). The standard `npm run start:prod` (`app.listen`) entry point is **not** used on Vercel, since serverless functions cannot host a long-running HTTP server.
+This project is configured to run on Vercel as a serverless function (see `src/serverless.ts`, `api/serverless.js`, and `vercel.json`). The standard `npm run start:prod` (`app.listen`) entry point is **not** used on Vercel, since serverless functions cannot host a long-running HTTP server. `api/serverless.js` exports a Vercel-native `(req, res)` handler that reuses the NestJS Express app.
 
 1. Push this repository to GitHub and import it into Vercel.
 2. In the project settings set:
@@ -87,7 +87,7 @@ This project is configured to run on Vercel as a serverless function via `server
    - `CORS_ORIGINS` (comma-separated list of browser origins **with protocol**, e.g. `https://hems-ui.vercel.app`)
 4. Deploy. `vercel.json` builds the app and rewrites all requests to the auto-detected `api/serverless.js` function.
 
-Note: Vercel serverless functions are stateless. `cachedHandler` in `src/serverless.ts` reuses the Nest app and Mongoose connection across warm invocations to reduce cold-start latency.
+Note: Vercel serverless functions are stateless. `cachedApp` in `src/serverless.ts` reuses the Nest app and Mongoose connection across warm invocations to reduce cold-start latency.
 
 ## Resources
 
