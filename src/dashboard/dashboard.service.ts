@@ -61,7 +61,10 @@ export class DashboardService {
             { $group: { _id: '$severity_level', count: { $sum: 1 } } },
             { $sort: { _id: 1 } },
           ],
-          resolved: [{ $match: { resolved_at: { $ne: null } } }, { $count: 'count' }],
+          resolved: [
+            { $match: { resolved_at: { $ne: null } } },
+            { $count: 'count' },
+          ],
         },
       },
     ]);
@@ -123,9 +126,7 @@ export class DashboardService {
         },
       },
       { $unwind: { path: '$case', preserveNullAndEmptyArrays: true } },
-      ...(dateFilter
-        ? [{ $match: { createdAt: dateFilter } }]
-        : []),
+      ...(dateFilter ? [{ $match: { createdAt: dateFilter } }] : []),
       {
         $facet: {
           total: [{ $count: 'count' }],
@@ -143,8 +144,7 @@ export class DashboardService {
     return {
       role: 'staff',
       assignedTotal: total,
-      assignedActive:
-        (byStatus.pending ?? 0) + (byStatus.acknowledged ?? 0),
+      assignedActive: (byStatus.pending ?? 0) + (byStatus.acknowledged ?? 0),
       assignedInProgress: byStatus.in_progress ?? 0,
       assignedResolved: byStatus.resolved ?? 0,
       assignedToday: dateFilter ? total : undefined,
@@ -156,9 +156,7 @@ export class DashboardService {
 
     const [facet] = await this.caseModel.aggregate([
       { $match: { reported_by: new Types.ObjectId(userId) } },
-      ...(dateFilter
-        ? [{ $match: { createdAt: dateFilter } }]
-        : []),
+      ...(dateFilter ? [{ $match: { createdAt: dateFilter } }] : []),
       {
         $facet: {
           total: [{ $count: 'count' }],
@@ -184,7 +182,9 @@ export class DashboardService {
     };
   }
 
-  private dateFilter(query: DashboardStatsQueryDto): Record<string, Date> | undefined {
+  private dateFilter(
+    query: DashboardStatsQueryDto,
+  ): Record<string, Date> | undefined {
     if (!query.from && !query.to) return undefined;
     const range: Record<string, Date> = {};
     if (query.from) {

@@ -89,7 +89,10 @@ export class IncidentsService {
     const [data, total] = await Promise.all([
       this.incidentModel
         .find(query)
-        .populate('case_id', 'incident_type status description location createdAt')
+        .populate(
+          'case_id',
+          'incident_type status description location createdAt',
+        )
         .populate('assigned_by', 'firstName lastName email role')
         .populate('assigned_staff', 'firstName lastName email role')
         .sort({ createdAt: -1 })
@@ -111,7 +114,10 @@ export class IncidentsService {
   async findOne(id: string): Promise<IncidentDocument> {
     const incident = await this.incidentModel
       .findById(id)
-      .populate('case_id', 'incident_type status description location createdAt')
+      .populate(
+        'case_id',
+        'incident_type status description location createdAt',
+      )
       .populate('assigned_by', 'firstName lastName email role')
       .populate('assigned_staff', 'firstName lastName email role')
       .exec();
@@ -143,12 +149,7 @@ export class IncidentsService {
     if (!updated) {
       throw new NotFoundException(`Incident with id ${id} not found`);
     }
-    await this.recordActivity(
-      actorId,
-      'update',
-      'Incident updated',
-      updated,
-    );
+    await this.recordActivity(actorId, 'update', 'Incident updated', updated);
     return this.populated(updated);
   }
 
@@ -165,7 +166,7 @@ export class IncidentsService {
       throw new NotFoundException(`Invalid incident status: ${status}`);
     }
 
-    const patch: Partial<EmergencyCase> = { status: status as never };
+    const patch: Partial<EmergencyCase> = { status: status };
     if (status === 'resolved') {
       patch.status = 'resolved';
       await this.incidentModel
@@ -240,14 +241,13 @@ export class IncidentsService {
       throw new NotFoundException(`Incident with id ${id} not found`);
     }
     await this.caseModel
-      .findByIdAndUpdate(removed.case_id, { incident: null }, { runValidators: true })
+      .findByIdAndUpdate(
+        removed.case_id,
+        { incident: null },
+        { runValidators: true },
+      )
       .exec();
-    await this.recordActivity(
-      actorId,
-      'delete',
-      'Incident deleted',
-      removed,
-    );
+    await this.recordActivity(actorId, 'delete', 'Incident deleted', removed);
   }
 
   private async populated(incident: IncidentDocument) {

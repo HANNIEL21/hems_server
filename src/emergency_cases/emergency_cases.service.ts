@@ -66,7 +66,10 @@ export class EmergencyCasesService {
         .populate({
           path: 'incident',
           select: 'severity_level assigned_staff resolved_at resolution_note',
-          populate: { path: 'assigned_staff', select: 'firstName lastName email role' },
+          populate: {
+            path: 'assigned_staff',
+            select: 'firstName lastName email role',
+          },
         })
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -91,7 +94,10 @@ export class EmergencyCasesService {
       .populate({
         path: 'incident',
         select: 'severity_level assigned_staff resolved_at resolution_note',
-        populate: { path: 'assigned_staff', select: 'firstName lastName email role' },
+        populate: {
+          path: 'assigned_staff',
+          select: 'firstName lastName email role',
+        },
       })
       .exec();
     if (!emergencyCase) {
@@ -142,7 +148,10 @@ export class EmergencyCasesService {
       {
         path: 'incident',
         select: 'severity_level assigned_staff resolved_at resolution_note',
-        populate: { path: 'assigned_staff', select: 'firstName lastName email role' },
+        populate: {
+          path: 'assigned_staff',
+          select: 'firstName lastName email role',
+        },
       },
     ]);
   }

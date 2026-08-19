@@ -8,7 +8,12 @@ export type IncidentSeverity =
 
 @Schema({ timestamps: true })
 export class Incident {
-  @Prop({ type: Types.ObjectId, ref: 'EmergencyCase', required: true, index: true })
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'EmergencyCase',
+    required: true,
+    index: true,
+  })
   case_id: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'User', index: true })

@@ -83,6 +83,7 @@ This project is configured to run on Vercel as a serverless function via `server
    - `REFRESH_TOKEN_EXPIRES_IN`
    - `OTP_EXPIRES_IN_MIN`
    - `OTP_LENGTH`
+   - `CORS_ORIGINS` (comma-separated list of browser origins, e.g. `https://your-ui.vercel.app`)
 4. Deploy. All requests are routed to `dist/serverless.js` by `vercel.json`.
 
 Note: Vercel serverless functions are stateless. `cachedHandler` in `src/serverless.ts` reuses the Nest app and Mongoose connection across warm invocations to reduce cold-start latency.

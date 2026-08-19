@@ -5,6 +5,7 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
 import serverless from 'serverless-http';
 import { AppModule } from './app.module';
+import { corsOptions } from './cors.config';
 
 let cachedHandler: ReturnType<typeof serverless>;
 
@@ -13,7 +14,7 @@ async function bootstrap() {
   const app = await NestFactory.create(
     AppModule,
     new ExpressAdapter(expressApp),
-    { cors: true },
+    { cors: corsOptions },
   );
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   await app.init();

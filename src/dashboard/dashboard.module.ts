@@ -6,7 +6,10 @@ import {
   EmergencyCase,
   EmergencyCaseSchema,
 } from '../emergency_cases/entities/emergency_case.entity';
-import { Incident, IncidentSchema } from '../incidents/entities/incident.entity';
+import {
+  Incident,
+  IncidentSchema,
+} from '../incidents/entities/incident.entity';
 import { User, UserSchema } from '../users/entities/user.entity';
 
 @Module({

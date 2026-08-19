@@ -25,12 +25,12 @@ describe('DashboardController', () => {
   });
 
   it('delegates to service with user context', async () => {
-    const result = await controller.getStats('u1', 'admin', { from: '2026-08-19' });
-    expect(mockDashboardService.getStats).toHaveBeenCalledWith(
-      'u1',
-      'admin',
-      { from: '2026-08-19' },
-    );
+    const result = await controller.getStats('u1', 'admin', {
+      from: '2026-08-19',
+    });
+    expect(mockDashboardService.getStats).toHaveBeenCalledWith('u1', 'admin', {
+      from: '2026-08-19',
+    });
     expect(result).toEqual({ role: 'admin' });
   });
 });
