@@ -12,6 +12,7 @@ import { EmergencyCasesService } from './emergency_cases.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateEmergencyCaseDto } from './dto/create-emergency_case.dto';
 import { UpdateEmergencyCaseDto } from './dto/update-emergency_case.dto';
+import { AssignEmergencyCaseDto } from './dto/assign-emergency-case.dto';
 import { FindAllEmergencyCasesDto } from './dto/find-all-emergency-cases.dto';
 
 @Controller('emergency-cases')
@@ -34,6 +35,15 @@ export class EmergencyCasesController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.emergencyCasesService.findOne(id);
+  }
+
+  @Patch(':id/assign')
+  assign(
+    @Param('id') id: string,
+    @Body() dto: AssignEmergencyCaseDto,
+    @CurrentUser('userId') actorId: string,
+  ) {
+    return this.emergencyCasesService.assign(id, dto, actorId);
   }
 
   @Patch(':id')

@@ -47,6 +47,15 @@ export class ActivityService {
       .exec();
   }
 
+  findByCase(caseId: string) {
+    return this.activityModel
+      .find({ 'meta.caseId': caseId })
+      .populate('user', 'firstName lastName email role')
+      .populate('targetUser', 'firstName lastName email role')
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
   findByAction(action: string) {
     return this.activityModel
       .find({ action })

@@ -26,6 +26,11 @@ export class ActivityController {
     return this.activityService.findByAction(action);
   }
 
+  @Get('case/:caseId')
+  findByCase(@Param('caseId') caseId: string) {
+    return this.activityService.findByCase(caseId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.activityService.findOne(id);

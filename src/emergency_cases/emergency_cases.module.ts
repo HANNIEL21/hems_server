@@ -7,11 +7,16 @@ import {
   EmergencyCase,
   EmergencyCaseSchema,
 } from './entities/emergency_case.entity';
+import {
+  Incident,
+  IncidentSchema,
+} from '../incidents/entities/incident.entity';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: EmergencyCase.name, schema: EmergencyCaseSchema },
+      { name: Incident.name, schema: IncidentSchema },
     ]),
     ActivityModule,
   ],

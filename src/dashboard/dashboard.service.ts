@@ -22,13 +22,15 @@ export class DashboardService {
     private readonly userModel: Model<User>,
   ) {}
 
-  async getStats(
-    userId: string,
-    role: string,
-    query: DashboardStatsQueryDto = {},
-  ) {
-    if (role === 'admin') return this.adminStats(query);
-    if (role === 'staff') return this.staffStats(userId, query);
+  async getStats(userId: string, query: DashboardStatsQueryDto = {}) {
+    const user = await this.userModel
+      .findById(userId)
+      .select('role')
+      .lean()
+      .exec();
+    const role = (user?.role ?? 'user').toLowerCase().trim();
+    if (role.includes('admin')) return this.adminStats(query);
+    if (role.includes('staff')) return this.staffStats(userId, query);
     return this.userStats(userId, query);
   }
 
@@ -104,11 +106,10 @@ export class DashboardService {
       incidentsBySeverity: this.toMap(incidentFacet?.bySeverity),
       personnelOnDuty: usersFacet?.onDuty?.[0]?.count ?? 0,
       personnelByRole: this.toMap(usersFacet?.byRole),
-      usersTotal:
-        Object.values(usersFacet?.byRole ?? {}).reduce(
-          (a: number, b: number) => a + b,
-          0,
-        ) ?? 0,
+      usersTotal: (usersFacet?.byRole ?? []).reduce(
+        (sum, row) => sum + row.count,
+        0,
+      ),
     };
   }
 

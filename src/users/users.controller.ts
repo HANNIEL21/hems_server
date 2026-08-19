@@ -37,6 +37,11 @@ export class UsersController {
     return this.usersService.findByRole(role);
   }
 
+  @Get('except/:role')
+  findExceptRole(@Param('role') role: string) {
+    return this.usersService.findExceptRole(role);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);

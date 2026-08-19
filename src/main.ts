@@ -8,7 +8,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.enableCors({
     origin: [
-      'https://hems-ui.vercel.app', 
+      'https://hems-ui.vercel.app/', 
       'http://localhost:3000', 
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',

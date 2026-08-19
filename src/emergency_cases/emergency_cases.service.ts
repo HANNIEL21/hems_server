@@ -6,8 +6,10 @@ import {
   EmergencyCase,
   EmergencyCaseDocument,
 } from './entities/emergency_case.entity';
+import { Incident } from '../incidents/entities/incident.entity';
 import { CreateEmergencyCaseDto } from './dto/create-emergency_case.dto';
 import { UpdateEmergencyCaseDto } from './dto/update-emergency_case.dto';
+import { AssignEmergencyCaseDto } from './dto/assign-emergency-case.dto';
 import { FindAllEmergencyCasesDto } from './dto/find-all-emergency-cases.dto';
 
 const RESOURCE = 'emergency_case';
@@ -17,6 +19,8 @@ export class EmergencyCasesService {
   constructor(
     @InjectModel(EmergencyCase.name)
     private readonly caseModel: Model<EmergencyCase>,
+    @InjectModel(Incident.name)
+    private readonly incidentModel: Model<Incident>,
     private readonly activityService: ActivityService,
   ) {}
 
@@ -127,6 +131,80 @@ export class EmergencyCasesService {
       updated,
     );
     return this.populated(updated);
+  }
+
+  async assign(
+    id: string,
+    dto: AssignEmergencyCaseDto,
+    actorId?: string,
+  ): Promise<EmergencyCaseDocument> {
+    const emergencyCase = await this.caseModel.findById(id).exec();
+    if (!emergencyCase) {
+      throw new NotFoundException(`Emergency case with id ${id} not found`);
+    }
+
+    const wasAssigned = !!emergencyCase.incident;
+
+    if (emergencyCase.incident) {
+      const patch: Record<string, unknown> = {
+        assigned_staff: new Types.ObjectId(dto.assigned_staff),
+      };
+      if (dto.severity_level) patch.severity_level = dto.severity_level;
+      if (actorId) patch.assigned_by = new Types.ObjectId(actorId);
+      const incident = await this.incidentModel
+        .findByIdAndUpdate(emergencyCase.incident, patch, {
+          returnDocument: 'after',
+          runValidators: true,
+        })
+        .exec();
+      if (!incident) {
+        throw new NotFoundException(
+          `Incident linked to emergency case ${id} not found`,
+        );
+      }
+    } else {
+      const created = await this.incidentModel.create({
+        case_id: emergencyCase._id,
+        assigned_by: actorId ? new Types.ObjectId(actorId) : undefined,
+        assigned_staff: new Types.ObjectId(dto.assigned_staff),
+        severity_level: dto.severity_level ?? 'medium',
+      });
+      await this.caseModel
+        .findByIdAndUpdate(
+          id,
+          { incident: created._id, status: 'in_progress' },
+          { returnDocument: 'after', runValidators: true },
+        )
+        .exec();
+    }
+
+    const updated = await this.findOne(id);
+    const populatedIncident = updated.incident as unknown as {
+      assigned_staff?: {
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+      } | null;
+    } | null;
+    const staff = populatedIncident?.assigned_staff;
+    const staffName = staff
+      ? [staff.firstName, staff.lastName].filter(Boolean).join(' ') ||
+        staff.email ||
+        'staff member'
+      : 'staff member';
+
+    await this.activityService.record({
+      user: actorId,
+      action: 'assign',
+      resource: RESOURCE,
+      description: `Emergency case ${
+        wasAssigned ? 'reassigned to' : 'assigned to'
+      } ${staffName}`,
+      targetUser: dto.assigned_staff,
+      meta: { caseId: id },
+    });
+
+    return updated;
   }
 
   async remove(id: string, actorId?: string): Promise<void> {

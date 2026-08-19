@@ -10,9 +10,8 @@ export class DashboardController {
   @Get('stats')
   getStats(
     @CurrentUser('userId') userId: string,
-    @CurrentUser('role') role: string,
     @Query() query: DashboardStatsQueryDto,
   ) {
-    return this.dashboardService.getStats(userId, role, query);
+    return this.dashboardService.getStats(userId, query);
   }
 }

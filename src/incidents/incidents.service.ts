@@ -4,7 +4,6 @@ import { Model, Types } from 'mongoose';
 import { ActivityService } from '../activity/activity.service';
 import {
   EmergencyCase,
-  EmergencyCaseDocument,
   EMERGENCY_STATUSES,
 } from '../emergency_cases/entities/emergency_case.entity';
 import { Incident, IncidentDocument } from './entities/incident.entity';
@@ -62,10 +61,19 @@ export class IncidentsService {
     const query: Record<string, unknown> = {};
     if (filter.status) {
       const valid = EMERGENCY_STATUSES.includes(filter.status);
-      if (valid) query['case_id.status'] = filter.status;
+      if (valid) {
+        const caseIds = await this.caseModel
+          .find({ status: filter.status })
+          .select('_id')
+          .lean()
+          .exec();
+        query.case_id = { $in: caseIds.map((c) => c._id) };
+      }
     }
     if (filter.severity_level) query.severity_level = filter.severity_level;
-    if (filter.assigned_staff) query.assigned_staff = filter.assigned_staff;
+    if (filter.assigned_staff) {
+      query.assigned_staff = new Types.ObjectId(filter.assigned_staff);
+    }
 
     if (filter.from || filter.to) {
       const range: Record<string, Date> = {};
@@ -186,7 +194,7 @@ export class IncidentsService {
       .exec();
     if (!emergencyCase) {
       throw new NotFoundException(
-        `Emergency case with id ${incident.case_id} not found`,
+        `Emergency case with id ${incident.case_id.toString()} not found`,
       );
     }
 
@@ -272,7 +280,10 @@ export class IncidentsService {
       action,
       resource: RESOURCE,
       description,
-      meta: { incidentId: incident._id.toString() },
+      meta: {
+        incidentId: incident._id.toString(),
+        caseId: incident.case_id?.toString(),
+      },
     });
   }
 }

@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { ActivityModule } from './activity/activity.module';
 import { IncidentsModule } from './incidents/incidents.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     ActivityModule,
     IncidentsModule,
     DashboardModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

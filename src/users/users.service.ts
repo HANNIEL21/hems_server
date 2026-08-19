@@ -86,6 +86,14 @@ export class UsersService {
     return this.userModel.find({ role }).select(PUBLIC_FIELDS).exec();
   }
 
+  findExceptRole(role: string) {
+    return this.userModel
+      .find({ role: { $ne: role } })
+      .select(PUBLIC_FIELDS)
+      .sort({ firstName: 1 })
+      .exec();
+  }
+
   countAll() {
     return this.userModel.countDocuments().exec();
   }
