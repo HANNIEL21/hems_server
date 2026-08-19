@@ -1,15 +1,11 @@
 {
   "version": 2,
-  "builds": [
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "rewrites": [
     {
-      "src": "dist/serverless.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "dist/serverless.js"
+      "source": "/(.*)",
+      "destination": "/api/serverless.js"
     }
   ]
 }

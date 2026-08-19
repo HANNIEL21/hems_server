@@ -68,14 +68,15 @@ $ npm run start:prod
 
 ### Deploying to Vercel
 
-This project is configured to run on Vercel as a serverless function via `serverless-http` (see `src/serverless.ts` and `vercel.json`). The standard `npm run start:prod` (`app.listen`) entry point is **not** used on Vercel, since serverless functions cannot host a long-running HTTP server.
+This project is configured to run on Vercel as a serverless function via `serverless-http` (see `src/serverless.ts`, `api/serverless.js`, and `vercel.json`). The standard `npm run start:prod` (`app.listen`) entry point is **not** used on Vercel, since serverless functions cannot host a long-running HTTP server.
 
 1. Push this repository to GitHub and import it into Vercel.
 2. In the project settings set:
-   - **Root Directory:** `server`
+   - **Root Directory:** `/` (the repo root already is the server)
    - **Framework Preset:** Other
-   - **Build Command:** `npm run build`
+   - **Build Command:** `npm run build` (also set in `vercel.json`)
    - **Install Command:** `npm install`
+   - **Output Directory:** (leave empty)
 3. Add the following environment variables in Vercel (do not commit `.env`):
    - `MONGODB_URI`
    - `JWT_SECRET`
@@ -83,8 +84,8 @@ This project is configured to run on Vercel as a serverless function via `server
    - `REFRESH_TOKEN_EXPIRES_IN`
    - `OTP_EXPIRES_IN_MIN`
    - `OTP_LENGTH`
-   - `CORS_ORIGINS` (comma-separated list of browser origins, e.g. `https://your-ui.vercel.app`)
-4. Deploy. All requests are routed to `dist/serverless.js` by `vercel.json`.
+   - `CORS_ORIGINS` (comma-separated list of browser origins **with protocol**, e.g. `https://hems-ui.vercel.app`)
+4. Deploy. `vercel.json` builds the app and rewrites all requests to the auto-detected `api/serverless.js` function.
 
 Note: Vercel serverless functions are stateless. `cachedHandler` in `src/serverless.ts` reuses the Nest app and Mongoose connection across warm invocations to reduce cold-start latency.
 
