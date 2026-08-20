@@ -94,6 +94,14 @@ export class UsersService {
       .exec();
   }
 
+  findAdmins() {
+    return this.userModel
+      .find({ role: { $regex: /admin/i } })
+      .select(PUBLIC_FIELDS)
+      .sort({ firstName: 1 })
+      .exec();
+  }
+
   countAll() {
     return this.userModel.countDocuments().exec();
   }

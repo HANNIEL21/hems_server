@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ActivityModule } from '../activity/activity.module';
+import { UsersModule } from '../users/users.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { EmergencyCasesService } from './emergency_cases.service';
 import { EmergencyCasesController } from './emergency_cases.controller';
 import {
@@ -19,6 +21,8 @@ import {
       { name: Incident.name, schema: IncidentSchema },
     ]),
     ActivityModule,
+    UsersModule,
+    NotificationsModule,
   ],
   controllers: [EmergencyCasesController],
   providers: [EmergencyCasesService],

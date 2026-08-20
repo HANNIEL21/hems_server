@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ActivityService } from '../activity/activity.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { UsersService } from '../users/users.service';
 import {
   EmergencyCase,
   EMERGENCY_STATUSES,
@@ -10,6 +12,7 @@ import { Incident, IncidentDocument } from './entities/incident.entity';
 import { CreateIncidentDto } from './dto/create-incident.dto';
 import { UpdateIncidentDto } from './dto/update-incident.dto';
 import { FindAllIncidentsDto } from './dto/find-all-incidents.dto';
+import { CreateNotificationDto } from '../notifications/dto/create-notification.dto';
 
 const RESOURCE = 'incident';
 
@@ -21,6 +24,8 @@ export class IncidentsService {
     @InjectModel(EmergencyCase.name)
     private readonly caseModel: Model<EmergencyCase>,
     private readonly activityService: ActivityService,
+    private readonly notificationsService: NotificationsService,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(dto: CreateIncidentDto, actorId?: string) {
@@ -204,6 +209,9 @@ export class IncidentsService {
       `Incident status changed to ${status}`,
       incident,
     );
+    if (status === 'resolved') {
+      await this.notifyResolved(incident);
+    }
     return this.populated(incident);
   }
 
@@ -240,6 +248,7 @@ export class IncidentsService {
       'Incident resolved',
       updated!,
     );
+    await this.notifyResolved(incident);
     return this.populated(updated!);
   }
 
@@ -285,5 +294,47 @@ export class IncidentsService {
         caseId: incident.case_id?.toString(),
       },
     });
+  }
+
+  private async notifyResolved(incident: IncidentDocument) {
+    try {
+      const emergencyCase = await this.caseModel
+        .findById(incident.case_id)
+        .exec();
+      if (!emergencyCase) return;
+
+      const incidentType = (emergencyCase.incident_type ?? 'incident').replace(
+        /_/g,
+        ' ',
+      );
+      const caseLabel = emergencyCase._id.toString().slice(-6);
+      const notifications: CreateNotificationDto[] = [];
+
+      if (emergencyCase.reported_by) {
+        notifications.push({
+          recipient: emergencyCase.reported_by.toString(),
+          type: 'resolve',
+          title: 'Your incident has been resolved',
+          message: `Your ${incidentType} report (${caseLabel}) has been resolved.`,
+          caseId: emergencyCase._id.toString(),
+          incidentId: incident._id.toString(),
+        });
+      }
+
+      const admins = await this.usersService.findAdmins();
+      for (const admin of admins) {
+        notifications.push({
+          recipient: admin._id.toString(),
+          type: 'resolve',
+          title: 'Incident resolved',
+          message: `Case ${caseLabel} (${incidentType}) has been resolved by the assigned team.`,
+          caseId: emergencyCase._id.toString(),
+          incidentId: incident._id.toString(),
+        });
+      }
+      await this.notificationsService.createMany(notifications);
+    } catch {
+      // Notification delivery must never fail the resolution.
+    }
   }
 }

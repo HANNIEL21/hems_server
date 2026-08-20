@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { QueryFilter, Model, Types } from 'mongoose';
 import { ActivityService } from '../activity/activity.service';
+import { UsersService } from '../users/users.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import {
   EmergencyCase,
   EmergencyCaseDocument,
@@ -11,6 +13,7 @@ import { CreateEmergencyCaseDto } from './dto/create-emergency_case.dto';
 import { UpdateEmergencyCaseDto } from './dto/update-emergency_case.dto';
 import { AssignEmergencyCaseDto } from './dto/assign-emergency-case.dto';
 import { FindAllEmergencyCasesDto } from './dto/find-all-emergency-cases.dto';
+import { CreateNotificationDto } from '../notifications/dto/create-notification.dto';
 
 const RESOURCE = 'emergency_case';
 
@@ -22,6 +25,8 @@ export class EmergencyCasesService {
     @InjectModel(Incident.name)
     private readonly incidentModel: Model<Incident>,
     private readonly activityService: ActivityService,
+    private readonly usersService: UsersService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(dto: CreateEmergencyCaseDto, actorId?: string) {
@@ -35,6 +40,7 @@ export class EmergencyCasesService {
       'Emergency case reported',
       created,
     );
+    await this.notifyReportCreated(created);
     return this.populated(created);
   }
 
@@ -42,7 +48,9 @@ export class EmergencyCasesService {
     const query: QueryFilter<EmergencyCase> = {};
     if (filter.status) query.status = filter.status;
     if (filter.incident_type) query.incident_type = filter.incident_type;
-    if (filter.reported_by) query.reported_by = filter.reported_by;
+    if (filter.reported_by) {
+      query.reported_by = new Types.ObjectId(filter.reported_by);
+    }
 
     if (filter.from || filter.to) {
       const range: Record<string, Date> = {};
@@ -204,6 +212,8 @@ export class EmergencyCasesService {
       meta: { caseId: id },
     });
 
+    await this.notifyAssigned(emergencyCase, dto.assigned_staff, staffName);
+
     return updated;
   }
 
@@ -247,5 +257,60 @@ export class EmergencyCasesService {
       description,
       meta: { caseId: emergencyCase._id.toString() },
     });
+  }
+
+  private async notifyReportCreated(emergencyCase: EmergencyCaseDocument) {
+    try {
+      const recipients = await this.usersService.findAdmins();
+      await this.notificationsService.createMany(
+        recipients.map((user) => ({
+          recipient: user._id.toString(),
+          type: 'report',
+          title: 'New incident reported',
+          message: `${emergencyCase.incident_type
+            .replace(/_/g, ' ')
+            .toUpperCase()} report awaiting dispatch.`,
+          caseId: emergencyCase._id.toString(),
+        })),
+      );
+    } catch {
+      // Notification delivery must never fail the report submission.
+    }
+  }
+
+  private async notifyAssigned(
+    emergencyCase: EmergencyCaseDocument,
+    assignedStaffId: string,
+    staffName: string,
+  ) {
+    try {
+      const incidentType = (emergencyCase.incident_type ?? 'incident').replace(
+        /_/g,
+        ' ',
+      );
+      const notifications: CreateNotificationDto[] = [
+        {
+          recipient: assignedStaffId,
+          type: 'assign',
+          title: 'New case assigned to you',
+          message: `Case ${emergencyCase._id
+            .toString()
+            .slice(-6)} (${incidentType}) has been assigned to ${staffName}.`,
+          caseId: emergencyCase._id.toString(),
+        },
+      ];
+      if (emergencyCase.reported_by) {
+        notifications.push({
+          recipient: emergencyCase.reported_by.toString(),
+          type: 'assign',
+          title: 'A responder has been assigned',
+          message: `Your ${incidentType} report is now being handled by ${staffName}.`,
+          caseId: emergencyCase._id.toString(),
+        });
+      }
+      await this.notificationsService.createMany(notifications);
+    } catch {
+      // Notification delivery must never fail the assignment.
+    }
   }
 }
