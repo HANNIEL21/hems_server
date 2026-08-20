@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import { ActivityService } from './activity.service';
 import { CreateActivityDto } from './dto/create-activity.dto';
+import { FindAllActivityDto } from './dto/find-all-activity.dto';
 
 @Controller('activity')
 export class ActivityController {
@@ -12,8 +13,8 @@ export class ActivityController {
   }
 
   @Get()
-  findAll() {
-    return this.activityService.findAll();
+  findAll(@Query() query: FindAllActivityDto) {
+    return this.activityService.findAll(query);
   }
 
   @Get('stats')
@@ -29,6 +30,11 @@ export class ActivityController {
   @Get('case/:caseId')
   findByCase(@Param('caseId') caseId: string) {
     return this.activityService.findByCase(caseId);
+  }
+
+  @Get('user/:userId')
+  findByUser(@Param('userId') userId: string) {
+    return this.activityService.findByUser(userId);
   }
 
   @Get(':id')

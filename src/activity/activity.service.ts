@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { QueryFilter, Model, Types } from 'mongoose';
 import { Activity, ActivityDocument } from './entities/activity.entity';
 import { CreateActivityDto } from './dto/create-activity.dto';
+import { FindAllActivityDto } from './dto/find-all-activity.dto';
 
 interface StatsRow {
   _id: string;
@@ -32,17 +33,39 @@ export class ActivityService {
     });
   }
 
-  findAll() {
+  findAll(filter: FindAllActivityDto = {}) {
+    const query: QueryFilter<Activity> = {};
+    if (filter.action) query.action = filter.action;
+    if (filter.resource) query.resource = filter.resource;
+    if (filter.user) query.user = new Types.ObjectId(filter.user);
+    if (filter.from || filter.to) {
+      const range: Record<string, Date> = {};
+      if (filter.from) {
+        const from = new Date(filter.from);
+        from.setHours(0, 0, 0, 0);
+        range.$gte = from;
+      }
+      if (filter.to) {
+        const to = new Date(filter.to);
+        to.setHours(23, 59, 59, 999);
+        range.$lte = to;
+      }
+      query.createdAt = range;
+    }
+
     return this.activityModel
-      .find()
+      .find(query)
       .populate('user', 'email firstName lastName role')
+      .populate('targetUser', 'email firstName lastName role')
       .sort({ createdAt: -1 })
       .exec();
   }
 
   findByUser(userId: string) {
     return this.activityModel
-      .find({ user: userId })
+      .find({ user: new Types.ObjectId(userId) })
+      .populate('user', 'firstName lastName email role')
+      .populate('targetUser', 'firstName lastName email role')
       .sort({ createdAt: -1 })
       .exec();
   }
